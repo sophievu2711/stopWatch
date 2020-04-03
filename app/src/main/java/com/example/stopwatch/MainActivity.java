@@ -17,15 +17,21 @@ public class MainActivity extends AppCompatActivity {
 
     private Timer timer;
     private TextView timeTextView;
-    private Button startButton;
-    private Button stopButton;
-    private Button resetButton;
+
     private int frac = 0;
     private int sec = 100 * frac;
     private int min = 60 * sec;
+    private int savedFrac = 0;
+    private int savedSec = 100 * savedFrac;
+    private int savedMin = 60 * savedSec;
+    private boolean freeStorage = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Button startButton;
+        Button stopButton;
+        Button resetButton;
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -34,12 +40,23 @@ public class MainActivity extends AppCompatActivity {
         startButton = findViewById(R.id.startButton);
         stopButton = findViewById(R.id.stopButton);
         resetButton = findViewById(R.id.resetButton);
+        timeTextView = findViewById(R.id.timeTextView);
 
         startButton.setOnClickListener(startButtonListener);
         stopButton.setOnClickListener(stopButtonListener);
         resetButton.setOnClickListener(resetButtonListener);
+    }
 
-        timeTextView = findViewById(R.id.timeTextView);
+    private void saveCurrentTime(){
+        savedFrac = frac;
+        savedMin = min;
+        savedSec = sec;
+    }
+
+    private void clearTimeHistory(){
+        savedFrac = 0;
+        savedMin = 0;
+        savedSec = 0;
     }
 
     private void setText(final TextView text, final int min, final int sec, final int frac){
@@ -53,24 +70,39 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void calculate() {
+        frac++;
+        if (frac > 99) {
+            sec++;
+            frac = 0;
+            if (sec > 60) {
+                min++;
+                sec = 0;
+            }
+        }
+    }
+
     private final Button.OnClickListener startButtonListener =
             new Button.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    timer.scheduleAtFixedRate(new TimerTask() {
-                        public void run() {
-                            frac++;
-                            if (frac > 99) {
-                                sec++;
-                                frac = 0;
-                                if (sec > 60) {
-                                    min++;
-                                    sec = 0;
-                                }
+                    if(freeStorage){
+                        timer.scheduleAtFixedRate(new TimerTask() {
+                            public void run() {
+                                calculate();
+                                setText(timeTextView, min, sec, frac);
                             }
-                            setText(timeTextView, min, sec, frac);
-                        }
-                    }, 0, 10);
+                        }, 0, 10);
+                    }else{
+                        timer = new Timer();
+                        timer.scheduleAtFixedRate(new TimerTask() {
+                            public void run() {
+                                calculate();
+                                setText(timeTextView, min, sec, frac);
+                            }
+                        }, 0, 10);
+                        clearTimeHistory();
+                    }
                 }
             };
 
@@ -78,7 +110,9 @@ public class MainActivity extends AppCompatActivity {
             new Button.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    saveCurrentTime();
                     timer.cancel();
+                    freeStorage = false;
                 }
             };
 
