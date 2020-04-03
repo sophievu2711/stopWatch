@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         timer = new Timer();
+
         startButton = findViewById(R.id.startButton);
         stopButton = findViewById(R.id.stopButton);
         resetButton = findViewById(R.id.resetButton);
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     frac = min = sec = 0;
+                    timer = new Timer();
                     setText(timeTextView, min, sec, frac);
                 }
             };
